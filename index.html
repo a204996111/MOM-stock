@@ -59,22 +59,19 @@
             box-sizing: border-box;
         }
 
-        /* 買進價格框聚焦時的顏色 (維持藍色) */
         #buyPrice:focus {
             border-color: #3498db;
         }
 
-        /* --- 修改這裡：賣出價格框 --- */
+        /* 賣出價格框：紅色喜氣 */
         #sellPrice {
             background-color: #fdfefe;
             border-color: #bdc3c7;
         }
-        /* 點擊輸入時變成喜氣的紅色！ */
         #sellPrice:focus {
-            border-color: #e74c3c; /* 改成紅色了 */
-            box-shadow: 0 0 8px rgba(231, 76, 60, 0.3); /* 加一點紅光暈 */
+            border-color: #e74c3c;
+            box-shadow: 0 0 8px rgba(231, 76, 60, 0.3);
         }
-        /* ------------------------ */
 
         button {
             background-color: #e74c3c;
@@ -112,11 +109,20 @@
             background-color: #ffeaa7; 
             padding: 20px; 
             border-radius: 15px; 
-            margin-bottom: 0;
+            margin-bottom: 15px;
             color: #333;
             font-size: 24px;
         }
         
+        /* 成本明細區塊 (原本刪掉現在加回來) */
+        .cost-row {
+            font-size: 22px;
+            color: #636e72;
+            margin: 10px 0;
+            padding: 10px;
+            border-bottom: 1px dashed #b2bec3;
+        }
+
         /* 淨利區塊 */
         .profit-box {
             background-color: #dfe6e9;
@@ -151,6 +157,16 @@
                 <span id="breakEven" class="highlight" style="color: #d63031;">0</span>
             </div>
 
+            <div class="cost-row">
+                買進總成本 (含手續費): <br>
+                <b style="color: #2d3436; font-size: 28px;" id="totalBuyCost">0</b> 元
+            </div>
+
+            <div class="cost-row" id="sellCostRow" style="display:none;">
+                賣出總費用 (手續費+稅): <br>
+                <b style="color: #2d3436; font-size: 28px;" id="totalSellCost">0</b> 元
+            </div>
+
             <div id="profitSection" class="profit-box" style="display:none;">
                 預估淨賺/賠: <br>
                 <span id="netProfit" class="highlight">0</span>
@@ -174,26 +190,41 @@
             var feeRate = 0.001425; 
             var taxRate = 0.003;
 
+            // --- 計算買進 ---
             var stockValue = buyPrice * 1000;
             var buyFee = Math.round(stockValue * feeRate);
             var totalBuyCost = stockValue + buyFee;
 
+            // --- 計算損益平衡 ---
             var breakEvenPrice = (stockValue + buyFee) / (1000 * (1 - feeRate - taxRate));
-            document.getElementById('breakEven').innerText = breakEvenPrice.toFixed(2) + " 元";
             
+            // --- 更新介面 (買進部分) ---
+            document.getElementById('breakEven').innerText = breakEvenPrice.toFixed(2) + " 元";
+            document.getElementById('totalBuyCost').innerText = totalBuyCost.toLocaleString();
+
+            // --- 處理賣出部分 ---
+            var sellCostRow = document.getElementById('sellCostRow');
             var profitSection = document.getElementById('profitSection');
             
             if (!isNaN(sellPrice)) {
+                // 有輸入賣價
                 var sellStockValue = sellPrice * 1000;
                 var sellFee = Math.round(sellStockValue * feeRate);
                 var sellTax = Math.round(sellStockValue * taxRate);
                 
+                // 賣出的交易成本 (手續費 + 稅)
+                var sellCostTotal = sellFee + sellTax;
+                document.getElementById('totalSellCost').innerText = sellCostTotal.toLocaleString();
+                sellCostRow.style.display = "block"; // 顯示賣出成本行
+
+                // 計算淨利
                 var sellNetIncome = sellStockValue - sellFee - sellTax;
                 var netProfit = sellNetIncome - totalBuyCost;
 
                 var profitSpan = document.getElementById('netProfit');
                 profitSpan.innerText = netProfit.toLocaleString() + " 元";
 
+                // 顏色判斷
                 if (netProfit > 0) {
                     profitSpan.style.color = "#e1251b";
                     profitSection.style.backgroundColor = "#ff7675";
@@ -211,6 +242,8 @@
 
                 profitSection.style.display = "block";
             } else {
+                // 沒輸入賣價 -> 隱藏賣出相關資訊
+                sellCostRow.style.display = "none";
                 profitSection.style.display = "none";
             }
 
