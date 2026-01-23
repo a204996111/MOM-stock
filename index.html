@@ -63,7 +63,6 @@
             border-color: #3498db;
         }
 
-        /* 賣出價格框：紅色喜氣 */
         #sellPrice {
             background-color: #fdfefe;
             border-color: #bdc3c7;
@@ -109,19 +108,42 @@
             background-color: #ffeaa7; 
             padding: 20px; 
             border-radius: 15px; 
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             color: #333;
             font-size: 24px;
         }
         
-        /* 成本明細區塊 (原本刪掉現在加回來) */
-        .cost-row {
-            font-size: 22px;
-            color: #636e72;
-            margin: 10px 0;
-            padding: 10px;
-            border-bottom: 1px dashed #b2bec3;
+        /* --- 費用顯示區 (同一排) --- */
+        .fee-row {
+            display: flex;
+            justify-content: center; /* 置中 */
+            align-items: center;     /* 垂直置中 */
+            margin-bottom: 10px;
         }
+
+        .fee-item {
+            flex: 1; /* 平均分配空間 */
+            font-size: 20px;
+            color: #636e72;
+        }
+
+        .fee-number {
+            display: block;
+            font-size: 28px; /* 數字大一點 */
+            color: #2d3436;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        /* 中間的分隔線 */
+        .divider {
+            font-size: 40px;
+            color: #b2bec3;
+            margin: 0 15px;
+            font-weight: 100;
+            display: none; /* 預設隱藏，有賣出才顯示 */
+        }
+        /* ----------------------- */
 
         /* 淨利區塊 */
         .profit-box {
@@ -157,14 +179,18 @@
                 <span id="breakEven" class="highlight" style="color: #d63031;">0</span>
             </div>
 
-            <div class="cost-row">
-                買進總成本 (含手續費): <br>
-                <b style="color: #2d3436; font-size: 28px;" id="totalBuyCost">0</b> 元
-            </div>
+            <div class="fee-row">
+                <div class="fee-item">
+                    買進費用:<br>
+                    <span id="buyFeeDisplay" class="fee-number">0</span>
+                </div>
 
-            <div class="cost-row" id="sellCostRow" style="display:none;">
-                賣出總費用 (手續費+稅): <br>
-                <b style="color: #2d3436; font-size: 28px;" id="totalSellCost">0</b> 元
+                <div class="divider" id="feeDivider">|</div>
+
+                <div class="fee-item" id="sellFeeBlock" style="display:none;">
+                    賣出費用:<br>
+                    <span id="sellFeeDisplay" class="fee-number">0</span>
+                </div>
             </div>
 
             <div id="profitSection" class="profit-box" style="display:none;">
@@ -192,18 +218,19 @@
 
             // --- 計算買進 ---
             var stockValue = buyPrice * 1000;
-            var buyFee = Math.round(stockValue * feeRate);
-            var totalBuyCost = stockValue + buyFee;
+            var buyFee = Math.round(stockValue * feeRate); // 這裡只算手續費
+            var totalBuyCost = stockValue + buyFee; // 這是實際要付的總金額(計算淨利用)
 
             // --- 計算損益平衡 ---
             var breakEvenPrice = (stockValue + buyFee) / (1000 * (1 - feeRate - taxRate));
             
-            // --- 更新介面 (買進部分) ---
+            // --- 更新介面 (只顯示費用) ---
             document.getElementById('breakEven').innerText = breakEvenPrice.toFixed(2) + " 元";
-            document.getElementById('totalBuyCost').innerText = totalBuyCost.toLocaleString();
+            document.getElementById('buyFeeDisplay').innerText = buyFee.toLocaleString(); // 顯示 143
 
             // --- 處理賣出部分 ---
-            var sellCostRow = document.getElementById('sellCostRow');
+            var feeDivider = document.getElementById('feeDivider');
+            var sellFeeBlock = document.getElementById('sellFeeBlock');
             var profitSection = document.getElementById('profitSection');
             
             if (!isNaN(sellPrice)) {
@@ -213,12 +240,17 @@
                 var sellTax = Math.round(sellStockValue * taxRate);
                 
                 // 賣出的交易成本 (手續費 + 稅)
-                var sellCostTotal = sellFee + sellTax;
-                document.getElementById('totalSellCost').innerText = sellCostTotal.toLocaleString();
-                sellCostRow.style.display = "block"; // 顯示賣出成本行
+                var sellCostOnly = sellFee + sellTax; 
+
+                // 顯示賣出費用
+                document.getElementById('sellFeeDisplay').innerText = sellCostOnly.toLocaleString();
+                
+                // 顯示分隔線和賣出區塊
+                feeDivider.style.display = "block";
+                sellFeeBlock.style.display = "block";
 
                 // 計算淨利
-                var sellNetIncome = sellStockValue - sellFee - sellTax;
+                var sellNetIncome = sellStockValue - sellCostOnly;
                 var netProfit = sellNetIncome - totalBuyCost;
 
                 var profitSpan = document.getElementById('netProfit');
@@ -242,8 +274,9 @@
 
                 profitSection.style.display = "block";
             } else {
-                // 沒輸入賣價 -> 隱藏賣出相關資訊
-                sellCostRow.style.display = "none";
+                // 沒輸入賣價 -> 隱藏賣出費用、分隔線、獲利
+                feeDivider.style.display = "none";
+                sellFeeBlock.style.display = "none";
                 profitSection.style.display = "none";
             }
 
