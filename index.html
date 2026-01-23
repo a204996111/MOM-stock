@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>媽媽的股票小幫手</title>
+    <style>
+        /* 這裡是設定樣式的地方，專為長輩設計 */
+        body {
+            font-family: "Microsoft JhengHei", "Heiti TC", sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 600px; /* 限制最大寬度，手機看也剛好 */
+            text-align: center;
+        }
+
+        h1 {
+            color: #2c3e50;
+            font-size: 36px; /* 標題大字 */
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            font-size: 28px; /* 標籤字體加大 */
+            color: #555;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        input[type="number"] {
+            width: 80%;
+            padding: 15px;
+            font-size: 32px; /* 輸入框字體超大 */
+            border: 3px solid #ddd;
+            border-radius: 10px;
+            text-align: center;
+            outline: none;
+        }
+
+        input[type="number"]:focus {
+            border-color: #3498db;
+        }
+
+        button {
+            background-color: #e74c3c; /* 紅色按鈕很顯眼 */
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 30px; /* 按鈕字體加大 */
+            border-radius: 15px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            box-shadow: 0 5px 0 #c0392b;
+        }
+
+        button:active {
+            box-shadow: none;
+            transform: translateY(5px);
+        }
+
+        .result-box {
+            margin-top: 40px;
+            background-color: #ecf0f1;
+            padding: 20px;
+            border-radius: 15px;
+            display: none; /* 一開始隱藏 */
+        }
+
+        .result-item {
+            font-size: 28px; /* 結果文字加大 */
+            margin: 15px 0;
+            color: #333;
+            border-bottom: 2px dashed #bdc3c7;
+            padding-bottom: 10px;
+        }
+
+        .highlight {
+            color: #d35400;
+            font-weight: bold;
+            font-size: 40px; /* 重點數字特大 */
+            display: block;
+            margin-top: 10px;
+        }
+
+        .note {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>📈 股票計算機</h1>
+        
+        <div class="input-group">
+            <label for="price">請輸入股價 (元)</label>
+            <input type="number" id="price" placeholder="例如: 100" inputmode="decimal">
+        </div>
+
+        <button onclick="calculate()">按我計算</button>
+
+        <div id="result" class="result-box">
+            <div class="result-item">
+                買進成本 (手續費): <br>
+                <span id="buyCost" class="highlight">0</span> 元
+            </div>
+            <div class="result-item">
+                賣出成本 (手續費+稅): <br>
+                <span id="sellCost" class="highlight">0</span> 元
+            </div>
+            <div class="result-item" style="background-color: #ffeaa7; padding: 10px; border-radius: 10px; border: none;">
+                🌟 損益平衡價 (不賠錢): <br>
+                <span id="breakEven" class="highlight" style="color: #d63031;">0</span>
+            </div>
+        </div>
+        
+        <p class="note">
+            *計算標準：手續費 0.1425%，證交稅 0.3%<br>
+            (一張股票 = 1000 股)
+        </p>
+    </div>
+
+    <script>
+        function calculate() {
+            // 1. 取得輸入的股價
+            var priceInput = document.getElementById('price').value;
+            
+            if (priceInput === "") {
+                alert("媽媽，要記得輸入數字喔！");
+                return;
+            }
+
+            var price = parseFloat(priceInput);
+
+            // 2. 設定參數 (這裡用台股標準公式)
+            // 手續費率 0.1425% (0.001425)
+            // 證交稅率 0.3% (0.003)
+            // 如果你有折數，例如6折，就把 feeRate 改成 0.001425 * 0.6
+            var feeRate = 0.001425; 
+            var taxRate = 0.003;
+
+            // 3. 計算邏輯
+            // 一張股票 = 1000 股
+            var totalStockValue = price * 1000;
+
+            // 買進手續費 (無條件捨去或四捨五入，這邊用標準四捨五入)
+            var buyFee = Math.round(totalStockValue * feeRate);
+            
+            // 賣出成本 = 賣出手續費 + 賣出證交稅
+            // 預估賣出時股價跟買入一樣來算成本
+            var sellFee = Math.round(totalStockValue * feeRate);
+            var tax = Math.round(totalStockValue * taxRate);
+            var totalSellCost = sellFee + tax;
+
+            // 總摩擦成本 (買+賣的費用)
+            var totalCost = buyFee + totalSellCost;
+
+            // 4. 計算損益平衡價
+            // 公式： 買入總金額 / (1 - 手續費率 - 證交稅率) / 1000
+            // 簡單說就是：你要賣超過這個價格，扣掉稅費才會賺錢
+            // 台灣證券交易所通常的算法比較複雜(要算跳動檔位)，
+            // 但這裡我們先用「成本損益兩平」的數學公式：
+            // 平衡價 = (股價 * 1000 + 買入手續費) / (1000 * (1 - 0.001425 - 0.003))
+            
+            // 簡化版邏輯 (為了給媽媽看大約多少不賠錢)：
+            // (本金 + 總交易成本) / 1000 = 每股至少要賣多少
+            var breakEvenPrice = (totalStockValue + buyFee + sellFee + tax) / 1000;
+
+            // 5. 顯示結果 (加上千分位逗號)
+            document.getElementById('buyCost').innerText = buyFee.toLocaleString();
+            document.getElementById('sellCost').innerText = totalSellCost.toLocaleString();
+            
+            // 損益平衡價顯示小數點後2位
+            document.getElementById('breakEven').innerText = breakEvenPrice.toFixed(2);
+
+            // 讓結果區塊顯示出來
+            document.getElementById('result').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
