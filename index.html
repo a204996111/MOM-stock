@@ -23,13 +23,12 @@
             background-color: #f4f7f6;
             display: flex;
             justify-content: center;
-            align-items: center; /* 垂直置中 */
-            min-height: 100vh;   /* 確保高度至少是螢幕高 */
+            align-items: center; 
+            min-height: 100vh;   
             margin: 0;
             padding: 20px;
-            /* 防止手機下拉重整 (更像App) */
             overscroll-behavior-y: none;
-            -webkit-user-select: none; /* 禁止長按選取文字 */
+            -webkit-user-select: none; 
             user-select: none;
         }
 
@@ -43,12 +42,15 @@
             text-align: center;
         }
 
+        /* --- 修改這裡：標題字體縮小以防換行 --- */
         h1 {
             color: #2c3e50;
-            font-size: 36px;
+            font-size: 28px; /* 從 36px 改成 28px，保證一行 */
             margin-bottom: 25px;
             margin-top: 0;
+            white-space: nowrap; /* 強制不換行 */
         }
+        /* ---------------------------------- */
 
         .input-group {
             margin-bottom: 25px;
@@ -74,7 +76,6 @@
             outline: none;
             box-sizing: border-box;
             background-color: #fff;
-            /* 讓輸入框可以被選取輸入 */
             -webkit-user-select: text;
             user-select: text;
         }
@@ -104,7 +105,6 @@
             margin-top: 10px;
             box-shadow: 0 5px 0 #c0392b;
             font-weight: bold;
-            /* 點擊時取消藍色框框 */
             -webkit-tap-highlight-color: transparent;
         }
 
