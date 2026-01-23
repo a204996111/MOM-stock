@@ -2,8 +2,20 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>股價手續費計算</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <title>股價計算機</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="股價計算">
+    
+    <meta name="theme-color" content="#f4f7f6">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2454/2454282.png">
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/2454/2454282.png">
+
     <style>
         /* 樣式設定 */
         body {
@@ -11,10 +23,14 @@
             background-color: #f4f7f6;
             display: flex;
             justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+            align-items: center; /* 垂直置中 */
+            min-height: 100vh;   /* 確保高度至少是螢幕高 */
             margin: 0;
             padding: 20px;
+            /* 防止手機下拉重整 (更像App) */
+            overscroll-behavior-y: none;
+            -webkit-user-select: none; /* 禁止長按選取文字 */
+            user-select: none;
         }
 
         .container {
@@ -57,6 +73,10 @@
             text-align: center;
             outline: none;
             box-sizing: border-box;
+            background-color: #fff;
+            /* 讓輸入框可以被選取輸入 */
+            -webkit-user-select: text;
+            user-select: text;
         }
 
         #buyPrice:focus {
@@ -84,6 +104,8 @@
             margin-top: 10px;
             box-shadow: 0 5px 0 #c0392b;
             font-weight: bold;
+            /* 點擊時取消藍色框框 */
+            -webkit-tap-highlight-color: transparent;
         }
 
         button:active {
@@ -103,7 +125,6 @@
             margin-top: 5px;
         }
 
-        /* 損益平衡區塊 */
         .breakeven-box {
             background-color: #ffeaa7; 
             padding: 20px; 
@@ -113,39 +134,35 @@
             font-size: 24px;
         }
         
-        /* --- 費用顯示區 (同一排) --- */
         .fee-row {
             display: flex;
-            justify-content: center; /* 置中 */
-            align-items: center;     /* 垂直置中 */
+            justify-content: center;
+            align-items: center;
             margin-bottom: 10px;
         }
 
         .fee-item {
-            flex: 1; /* 平均分配空間 */
+            flex: 1;
             font-size: 20px;
             color: #636e72;
         }
 
         .fee-number {
             display: block;
-            font-size: 28px; /* 數字大一點 */
+            font-size: 28px;
             color: #2d3436;
             font-weight: bold;
             margin-top: 5px;
         }
 
-        /* 中間的分隔線 */
         .divider {
             font-size: 40px;
             color: #b2bec3;
             margin: 0 15px;
             font-weight: 100;
-            display: none; /* 預設隱藏，有賣出才顯示 */
+            display: none;
         }
-        /* ----------------------- */
 
-        /* 淨利區塊 */
         .profit-box {
             background-color: #dfe6e9;
             padding: 20px; 
@@ -181,7 +198,7 @@
 
             <div class="fee-row">
                 <div class="fee-item">
-                    買進費用:<br>
+                    買進手續費:<br>
                     <span id="buyFeeDisplay" class="fee-number">0</span>
                 </div>
 
@@ -216,47 +233,37 @@
             var feeRate = 0.001425; 
             var taxRate = 0.003;
 
-            // --- 計算買進 ---
             var stockValue = buyPrice * 1000;
-            var buyFee = Math.round(stockValue * feeRate); // 這裡只算手續費
-            var totalBuyCost = stockValue + buyFee; // 這是實際要付的總金額(計算淨利用)
+            var buyFee = Math.round(stockValue * feeRate);
+            var totalBuyCost = stockValue + buyFee; 
 
-            // --- 計算損益平衡 ---
             var breakEvenPrice = (stockValue + buyFee) / (1000 * (1 - feeRate - taxRate));
             
-            // --- 更新介面 (只顯示費用) ---
             document.getElementById('breakEven').innerText = breakEvenPrice.toFixed(2) + " 元";
-            document.getElementById('buyFeeDisplay').innerText = buyFee.toLocaleString(); // 顯示 143
+            document.getElementById('buyFeeDisplay').innerText = buyFee.toLocaleString();
 
-            // --- 處理賣出部分 ---
             var feeDivider = document.getElementById('feeDivider');
             var sellFeeBlock = document.getElementById('sellFeeBlock');
             var profitSection = document.getElementById('profitSection');
             
             if (!isNaN(sellPrice)) {
-                // 有輸入賣價
                 var sellStockValue = sellPrice * 1000;
                 var sellFee = Math.round(sellStockValue * feeRate);
                 var sellTax = Math.round(sellStockValue * taxRate);
                 
-                // 賣出的交易成本 (手續費 + 稅)
                 var sellCostOnly = sellFee + sellTax; 
 
-                // 顯示賣出費用
                 document.getElementById('sellFeeDisplay').innerText = sellCostOnly.toLocaleString();
                 
-                // 顯示分隔線和賣出區塊
                 feeDivider.style.display = "block";
                 sellFeeBlock.style.display = "block";
 
-                // 計算淨利
                 var sellNetIncome = sellStockValue - sellCostOnly;
                 var netProfit = sellNetIncome - totalBuyCost;
 
                 var profitSpan = document.getElementById('netProfit');
                 profitSpan.innerText = netProfit.toLocaleString() + " 元";
 
-                // 顏色判斷
                 if (netProfit > 0) {
                     profitSpan.style.color = "#e1251b";
                     profitSection.style.backgroundColor = "#ff7675";
@@ -274,7 +281,6 @@
 
                 profitSection.style.display = "block";
             } else {
-                // 沒輸入賣價 -> 隱藏賣出費用、分隔線、獲利
                 feeDivider.style.display = "none";
                 sellFeeBlock.style.display = "none";
                 profitSection.style.display = "none";
