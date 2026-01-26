@@ -9,7 +9,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="股價計算">
-    
     <meta name="theme-color" content="#f4f7f6">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
@@ -23,7 +22,7 @@
             background-color: #f4f7f6;
             display: flex;
             justify-content: center;
-            align-items: center; 
+            align-items: flex-start; /* 改成靠上對齊，因為內容變長了 */
             min-height: 100vh;   
             margin: 0;
             padding: 20px;
@@ -34,43 +33,44 @@
 
         .container {
             background-color: white;
-            padding: 30px;
+            padding: 25px;
             border-radius: 20px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             width: 100%;
             max-width: 600px;
             text-align: center;
+            margin-top: 20px; /* 稍微留點頭部空間 */
+            margin-bottom: 40px; /* 留點底部空間滑動 */
         }
 
-        /* --- 修改這裡：標題字體縮小以防換行 --- */
         h1 {
             color: #2c3e50;
-            font-size: 28px; /* 從 36px 改成 28px，保證一行 */
-            margin-bottom: 25px;
+            font-size: 28px;
+            margin-bottom: 20px;
             margin-top: 0;
-            white-space: nowrap; /* 強制不換行 */
+            white-space: nowrap;
         }
-        /* ---------------------------------- */
 
         .input-group {
-            margin-bottom: 25px;
+            margin-bottom: 15px;
             text-align: left;
-            padding: 0 10px;
+            padding: 0 5px;
         }
 
         label {
             display: block;
-            font-size: 26px;
+            font-size: 24px;
             color: #555;
             margin-bottom: 8px;
             font-weight: bold;
         }
 
-        input[type="number"] {
+        /* 主要輸入框 (最大) */
+        input.main-input {
             width: 100%;
             padding: 15px;
             font-size: 32px;
-            border: 3px solid #ddd;
+            border: 3px solid #3498db; /* 主要框預設藍色 */
             border-radius: 12px;
             text-align: center;
             outline: none;
@@ -80,10 +80,36 @@
             user-select: text;
         }
 
-        #buyPrice:focus {
-            border-color: #3498db;
+        /* 次要輸入框群組 */
+        .secondary-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* 兩欄排列 */
+            gap: 10px;
+            margin-bottom: 25px;
+            padding: 0 5px;
         }
 
+        /* 次要輸入框 (稍小) */
+        input.sub-input {
+            width: 100%;
+            padding: 10px;
+            font-size: 22px; /* 字體稍小 */
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            text-align: center;
+            outline: none;
+            box-sizing: border-box;
+            background-color: #fafafa;
+            -webkit-user-select: text;
+            user-select: text;
+        }
+
+        input.sub-input:focus, input.main-input:focus {
+            border-color: #3498db;
+            background-color: #fff;
+        }
+
+        /* 賣出價格框：紅色喜氣 */
         #sellPrice {
             background-color: #fdfefe;
             border-color: #bdc3c7;
@@ -98,7 +124,7 @@
             color: white;
             border: none;
             padding: 15px;
-            font-size: 32px;
+            font-size: 30px;
             border-radius: 15px;
             cursor: pointer;
             width: 100%;
@@ -129,11 +155,21 @@
             background-color: #ffeaa7; 
             padding: 20px; 
             border-radius: 15px; 
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             color: #333;
             font-size: 24px;
         }
         
+        /* 均價顯示列 */
+        .avg-price-row {
+            font-size: 20px;
+            color: #2c3e50;
+            background-color: #f0f3f5;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
         .fee-row {
             display: flex;
             justify-content: center;
@@ -143,22 +179,22 @@
 
         .fee-item {
             flex: 1;
-            font-size: 20px;
+            font-size: 18px;
             color: #636e72;
         }
 
         .fee-number {
             display: block;
-            font-size: 28px;
+            font-size: 26px;
             color: #2d3436;
             font-weight: bold;
             margin-top: 5px;
         }
 
         .divider {
-            font-size: 40px;
+            font-size: 30px;
             color: #b2bec3;
-            margin: 0 15px;
+            margin: 0 10px;
             font-weight: 100;
             display: none;
         }
@@ -170,6 +206,15 @@
             margin-top: 20px;
             font-size: 24px;
         }
+        
+        .hint {
+            font-size: 14px;
+            color: #999;
+            margin-top: -10px;
+            margin-bottom: 10px;
+            text-align: left;
+            padding-left: 5px;
+        }
     </style>
 </head>
 <body>
@@ -178,13 +223,23 @@
         <h1>💰 股價手續費計算</h1>
         
         <div class="input-group">
-            <label for="buyPrice">1. 買進價格 (元)</label>
-            <input type="number" id="buyPrice" placeholder="輸入買價" inputmode="decimal">
+            <label>1. 買進價格 (元)</label>
+            <input type="number" id="buyPrice1" class="main-input" placeholder="主要價格" inputmode="decimal">
+        </div>
+        
+        <p class="hint">▼ 若有分批買，填在下面 (選填)</p>
+
+        <div class="secondary-group">
+            <input type="number" id="buyPrice2" class="sub-input" placeholder="價格2" inputmode="decimal">
+            <input type="number" id="buyPrice3" class="sub-input" placeholder="價格3" inputmode="decimal">
+            <input type="number" id="buyPrice4" class="sub-input" placeholder="價格4" inputmode="decimal">
+            <input type="number" id="buyPrice5" class="sub-input" placeholder="價格5" inputmode="decimal">
+            <input type="number" id="buyPrice6" class="sub-input" placeholder="價格6" inputmode="decimal">
         </div>
 
         <div class="input-group">
             <label for="sellPrice">2. 預計賣出 (可不填)</label>
-            <input type="number" id="sellPrice" placeholder="輸入賣價" inputmode="decimal">
+            <input type="number" id="sellPrice" class="main-input" style="border-color: #bdc3c7;" placeholder="輸入賣價" inputmode="decimal">
         </div>
 
         <button onclick="calculate()">開始計算</button>
@@ -196,22 +251,27 @@
                 <span id="breakEven" class="highlight" style="color: #d63031;">0</span>
             </div>
 
+            <div class="avg-price-row">
+                平均股價: <b id="avgPriceDisplay">0</b> 元 
+                <span style="font-size: 16px; color:#7f8c8d;">(共 <span id="totalCount">0</span> 張)</span>
+            </div>
+
             <div class="fee-row">
                 <div class="fee-item">
-                    買進手續費:<br>
+                    總買進手續費:<br>
                     <span id="buyFeeDisplay" class="fee-number">0</span>
                 </div>
 
                 <div class="divider" id="feeDivider">|</div>
 
                 <div class="fee-item" id="sellFeeBlock" style="display:none;">
-                    賣出費用:<br>
+                    賣出總費用:<br>
                     <span id="sellFeeDisplay" class="fee-number">0</span>
                 </div>
             </div>
 
             <div id="profitSection" class="profit-box" style="display:none;">
-                預估淨賺/賠: <br>
+                預估總淨賺/賠: <br>
                 <span id="netProfit" class="highlight">0</span>
             </div>
 
@@ -220,36 +280,63 @@
 
     <script>
         function calculate() {
-            var buyInput = document.getElementById('buyPrice').value;
-            var sellInput = document.getElementById('sellPrice').value;
-            
-            if (buyInput === "") {
-                return;
+            // 1. 收集所有買進價格
+            var prices = [];
+            for (var i = 1; i <= 6; i++) {
+                var val = document.getElementById('buyPrice' + i).value;
+                if (val !== "") {
+                    prices.push(parseFloat(val));
+                }
             }
 
-            var buyPrice = parseFloat(buyInput);
+            if (prices.length === 0) {
+                return; // 如果完全沒輸入，不做反應
+            }
+
+            var sellInput = document.getElementById('sellPrice').value;
             var sellPrice = parseFloat(sellInput);
 
             var feeRate = 0.001425; 
             var taxRate = 0.003;
 
-            var stockValue = buyPrice * 1000;
-            var buyFee = Math.round(stockValue * feeRate);
-            var totalBuyCost = stockValue + buyFee; 
+            // 2. 計算買進總數據
+            var totalStockValue = 0; // 純股票價值
+            var totalBuyFee = 0;     // 總買入手續費
+            var totalShares = 0;     // 總股數
 
-            var breakEvenPrice = (stockValue + buyFee) / (1000 * (1 - feeRate - taxRate));
-            
+            for (var i = 0; i < prices.length; i++) {
+                var p = prices[i];
+                var shareValue = p * 1000; // 假設一筆就是一張(1000股)
+                var fee = Math.round(shareValue * feeRate);
+                
+                totalStockValue += shareValue;
+                totalBuyFee += fee;
+                totalShares += 1000;
+            }
+
+            var totalBuyCost = totalStockValue + totalBuyFee; // 實際付出的總現金
+            var avgPrice = totalStockValue / totalShares; // 平均股價 (不含手續費的均價)
+
+            // 3. 計算損益平衡價 (總成本 / 總股數 / 系數)
+            // 公式邏輯：賣出總金額扣掉稅費後，要等於買入總成本
+            var breakEvenPrice = totalBuyCost / (totalShares * (1 - feeRate - taxRate));
+
+            // 4. 更新介面顯示
             document.getElementById('breakEven').innerText = breakEvenPrice.toFixed(2) + " 元";
-            document.getElementById('buyFeeDisplay').innerText = buyFee.toLocaleString();
+            document.getElementById('buyFeeDisplay').innerText = totalBuyFee.toLocaleString();
+            document.getElementById('avgPriceDisplay').innerText = avgPrice.toFixed(2);
+            document.getElementById('totalCount').innerText = prices.length;
 
+            // 5. 處理賣出部分
             var feeDivider = document.getElementById('feeDivider');
             var sellFeeBlock = document.getElementById('sellFeeBlock');
             var profitSection = document.getElementById('profitSection');
             
             if (!isNaN(sellPrice)) {
-                var sellStockValue = sellPrice * 1000;
-                var sellFee = Math.round(sellStockValue * feeRate);
-                var sellTax = Math.round(sellStockValue * taxRate);
+                // 有輸入賣價 -> 假設全部一次賣出
+                var sellTotalValue = sellPrice * totalShares; // 賣出總市值
+                var sellFee = Math.round(sellTotalValue * feeRate);
+                var sellTax = Math.round(sellTotalValue * taxRate);
                 
                 var sellCostOnly = sellFee + sellTax; 
 
@@ -258,7 +345,8 @@
                 feeDivider.style.display = "block";
                 sellFeeBlock.style.display = "block";
 
-                var sellNetIncome = sellStockValue - sellCostOnly;
+                // 計算總淨利
+                var sellNetIncome = sellTotalValue - sellCostOnly;
                 var netProfit = sellNetIncome - totalBuyCost;
 
                 var profitSpan = document.getElementById('netProfit');
