@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
-    <title>永豐全方way - 股價精算</title>
+    <title>永豐全方way - 損益計算APP</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
@@ -32,7 +32,12 @@
         }
 
         .container {
-            background-color: white;
+            background-color: white; /* 備用背景色 */
+            /* --- 新增：滿版精品老花浮水印 --- */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='150'%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' transform='rotate(-25, 100, 75)' fill='rgba(0,0,0,0.06)' font-size='20' font-weight='bold' font-family='sans-serif'%3E%E6%B0%B8%E8%B1%90%E5%85%A8%E6%96%B9way%3C/text%3E%3C/svg%3E");
+            background-repeat: repeat;
+            background-position: center;
+            /* --------------------------------- */
             padding: 25px;
             border-radius: 20px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
@@ -41,38 +46,21 @@
             text-align: center;
             margin-top: 20px; 
             margin-bottom: 40px; 
-            /* 浮水印定位用 */
             position: relative;
-            overflow: hidden; 
             z-index: 1;
         }
 
-        /* --- 新增：團隊專屬極淡浮水印 --- */
-        .container::before {
-            content: "永豐全方way";
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-30deg);
-            font-size: 60px;
-            color: rgba(0, 0, 0, 0.04); /* 透明度極低，不影響閱讀 */
-            font-weight: 900;
-            white-space: nowrap;
-            pointer-events: none; /* 讓滑鼠點不到它 */
-            z-index: -1;
-        }
-
-        /* --- 新增：頂部品牌標題區塊 --- */
+        /* 團隊品牌標題區塊 */
         .brand-header {
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 25px;
-            gap: 15px; /* LOGO和文字的間距 */
+            margin-bottom: 30px;
+            gap: 15px; 
         }
 
         .brand-logo {
-            height: 50px; /* LOGO高度，可隨時調整 */
+            height: 55px; /* 稍微加大配合標題 */
             width: auto;
             border-radius: 8px;
         }
@@ -81,21 +69,23 @@
             text-align: left;
         }
 
+        /* --- 修改：標題改成全黑、特粗、變大 --- */
         .brand-text h1 {
-            color: #c0392b; /* 永豐紅 */
-            font-size: 30px;
+            color: #111; /* 極致質感黑 */
+            font-size: 36px; /* 放大字體 */
             margin: 0;
-            font-weight: 900;
+            font-weight: 900; /* 特粗體 */
             letter-spacing: 1px;
         }
 
+        /* --- 修改：副標題改名、加粗、稍微放大 --- */
         .brand-text h2 {
-            color: #7f8c8d;
-            font-size: 15px;
-            margin: 2px 0 0 0;
-            font-weight: normal;
+            color: #555; /* 深灰色搭配黑色主標 */
+            font-size: 18px; 
+            margin: 5px 0 0 0;
+            font-weight: bold;
+            letter-spacing: 2px;
         }
-        /* -------------------------------- */
 
         .input-group {
             margin-bottom: 15px;
@@ -106,7 +96,7 @@
         label {
             display: block;
             font-size: 24px;
-            color: #555;
+            color: #333;
             margin-bottom: 8px;
             font-weight: bold;
         }
@@ -120,13 +110,13 @@
             text-align: center;
             outline: none;
             box-sizing: border-box;
-            background-color: #fff;
+            background-color: rgba(255, 255, 255, 0.9); /* 微透讓浮水印隱約可見 */
             -webkit-user-select: text;
             user-select: text;
         }
 
         #sellPrice {
-            background-color: #fdfefe;
+            background-color: rgba(253, 254, 254, 0.9);
             border-color: #bdc3c7;
         }
         #sellPrice:focus {
@@ -135,7 +125,7 @@
         }
 
         .adv-panel {
-            background-color: rgba(248, 249, 250, 0.85); /* 稍微透明，透出浮水印 */
+            background-color: rgba(248, 249, 250, 0.85); 
             border: 1px solid #e9ecef;
             border-radius: 15px;
             padding: 15px;
@@ -149,7 +139,7 @@
             justify-content: space-between;
             margin-bottom: 12px;
             font-size: 20px;
-            color: #495057;
+            color: #222;
             font-weight: bold;
         }
 
@@ -252,16 +242,16 @@
         }
 
         .breakeven-box {
-            background-color: rgba(255, 234, 167, 0.9); 
+            background-color: rgba(255, 234, 167, 0.95); 
             padding: 20px; 
             border-radius: 15px; 
             margin-bottom: 15px;
-            color: #333;
+            color: #222;
             font-size: 24px;
         }
 
         .margin-box {
-            background-color: rgba(227, 242, 253, 0.9); 
+            background-color: rgba(227, 242, 253, 0.95); 
             padding: 15px; 
             border-radius: 15px; 
             margin-bottom: 15px;
@@ -280,14 +270,14 @@
         .fee-item {
             flex: 1;
             font-size: 18px;
-            color: #636e72;
+            color: #555;
             position: relative;
         }
 
         .fee-number {
             display: block;
             font-size: 26px;
-            color: #2d3436;
+            color: #111;
             font-weight: bold;
             margin-top: 5px;
         }
@@ -301,7 +291,7 @@
         }
 
         .profit-box {
-            background-color: rgba(223, 230, 233, 0.9);
+            background-color: rgba(223, 230, 233, 0.95);
             padding: 20px; 
             border-radius: 15px;
             margin-top: 20px;
@@ -317,7 +307,7 @@
             <img src="logo.png" alt="團隊LOGO" class="brand-logo" onerror="this.style.display='none'">
             <div class="brand-text">
                 <h1>永豐全方way</h1>
-                <h2>股價與手續費精算系統</h2>
+                <h2>損益計算APP</h2>
             </div>
         </div>
         
@@ -372,18 +362,18 @@
 
             <div id="marginDetails" style="display: none; background-color: #f1f3f5; padding: 12px; border-radius: 10px; margin-top: 10px; font-size: 16px;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 10px; align-items: center;">
-                    <span style="color:#555; font-weight: bold;">融資成數:</span>
+                    <span style="color:#333; font-weight: bold;">融資成數:</span>
                     <select id="marginRatio" class="adv-select" style="font-size: 15px; padding: 5px;">
                         <option value="0.6">自備4成融資6成</option>
                         <option value="0.5">自備5成融資5成</option>
                     </select>
                 </div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 10px; align-items: center;">
-                    <span style="color:#555; font-weight: bold;">融資利率 (%):</span>
+                    <span style="color:#333; font-weight: bold;">融資利率 (%):</span>
                     <input type="number" id="marginRate" class="adv-select calc-trigger" style="font-size: 15px; padding: 5px; width: 80px; text-align: center;" value="6.35" step="0.01" inputmode="decimal">
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="color:#555; font-weight: bold;">標的持有天數 (天):</span>
+                    <span style="color:#333; font-weight: bold;">標的持有天數 (天):</span>
                     <input type="number" id="holdingDays" class="adv-select calc-trigger" style="font-size: 15px; padding: 5px; width: 80px; text-align: center;" placeholder="自填" inputmode="numeric">
                 </div>
             </div>
