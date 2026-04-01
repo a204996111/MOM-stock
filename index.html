@@ -16,7 +16,7 @@
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/2454/2454282.png">
 
     <style>
-        /* 樣式設定 */
+        /* 基礎樣式設定 */
         body {
             font-family: "Microsoft JhengHei", "Heiti TC", sans-serif;
             background-color: #f4f7f6;
@@ -65,7 +65,7 @@
             font-weight: bold;
         }
 
-        /* 主要輸入框 */
+        /* 輸入框樣式 */
         input.main-input {
             width: 100%;
             padding: 15px;
@@ -80,7 +80,6 @@
             user-select: text;
         }
 
-        /* 次要輸入框群組 (兩欄排列) */
         .secondary-group {
             display: grid;
             grid-template-columns: 1fr 1fr; 
@@ -89,7 +88,6 @@
             padding: 0 5px;
         }
 
-        /* 次要輸入框 */
         input.sub-input {
             width: 100%;
             padding: 10px;
@@ -118,7 +116,92 @@
             box-shadow: 0 0 8px rgba(231, 76, 60, 0.3);
         }
 
-        button {
+        /* --- 新增：進階設定區塊 (手續費、當沖、融資) --- */
+        .adv-panel {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .adv-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 20px;
+            color: #495057;
+            font-weight: bold;
+        }
+
+        .adv-row:last-child {
+            margin-bottom: 0;
+        }
+
+        /* 下拉選單樣式 */
+        select.adv-select {
+            padding: 8px;
+            font-size: 18px;
+            border-radius: 8px;
+            border: 1px solid #ced4da;
+            background-color: white;
+            color: #2c3e50;
+            outline: none;
+        }
+
+        /* iPhone 風格滑動開關 */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 54px;
+            height: 30px;
+        }
+
+        .switch input { 
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 30px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #e74c3c; /* 喜氣紅開關 */
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        /* ------------------------------------------- */
+
+        button.calc-btn {
             background-color: #e74c3c;
             color: white;
             border: none;
@@ -127,17 +210,18 @@
             border-radius: 15px;
             cursor: pointer;
             width: 100%;
-            margin-top: 10px;
+            margin-top: 5px;
             box-shadow: 0 5px 0 #c0392b;
             font-weight: bold;
             -webkit-tap-highlight-color: transparent;
         }
 
-        button:active {
+        button.calc-btn:active {
             box-shadow: none;
             transform: translateY(5px);
         }
 
+        /* 結果顯示區塊 */
         .result-box {
             margin-top: 25px;
             display: none;
@@ -157,6 +241,16 @@
             margin-bottom: 15px;
             color: #333;
             font-size: 24px;
+        }
+
+        .margin-box {
+            background-color: #e3f2fd; 
+            padding: 15px; 
+            border-radius: 15px; 
+            margin-bottom: 15px;
+            color: #1565c0;
+            font-size: 22px;
+            display: none; /* 預設隱藏，有開融資才顯示 */
         }
         
         .avg-price-row {
@@ -230,13 +324,59 @@
             <input type="number" id="sellPrice" class="main-input" style="border-color: #bdc3c7;" placeholder="輸入賣價" inputmode="decimal">
         </div>
 
-        <button onclick="calculate()">開始計算</button>
+        <div class="adv-panel">
+            <div class="adv-row">
+                <span>券商手續費</span>
+                <select id="discountSelect" class="adv-select">
+                    <option value="1">不打折</option>
+                    <option value="0.65" selected>永豐一般 (65折)</option>
+                    <option value="0.5">優惠 (5折)</option>
+                    <option value="0.28">專屬大戶 (28折)</option>
+                </select>
+            </div>
+
+            <div class="adv-row">
+                <span>現股當沖 (稅減半)</span>
+                <div class="toggle-group">
+                    <label class="switch">
+                        <input type="checkbox" id="dayTradeToggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="adv-row">
+                <span>融資計算</span>
+                <div class="toggle-group">
+                    <label class="switch">
+                        <input type="checkbox" id="marginToggle" onchange="toggleMarginOptions()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="adv-row" id="marginOptions" style="display: none; justify-content: flex-end;">
+                <span style="font-size: 16px; margin-right: 10px; color:#7f8c8d;">選擇成數:</span>
+                <select id="marginRatio" class="adv-select" style="font-size: 16px;">
+                    <option value="0.6">融資6成 (自備4成)</option>
+                    <option value="0.5">融資5成 (自備5成)</option>
+                    <option value="0.4">融資4成 (自備6成)</option>
+                </select>
+            </div>
+        </div>
+
+        <button class="calc-btn" onclick="calculate()">開始計算</button>
 
         <div id="result" class="result-box">
             
             <div class="breakeven-box">
                 損益平衡價 (不賠錢): <br>
                 <span id="breakEven" class="highlight" style="color: #d63031;">0</span>
+            </div>
+
+            <div class="margin-box" id="marginResultBox">
+                預估自備款 (含手續費): <br>
+                <span id="marginDownPayment" class="highlight" style="color: #1976d2;">0</span>
             </div>
 
             <div class="avg-price-row">
@@ -267,8 +407,18 @@
     </div>
 
     <script>
+        // 控制融資成數選單的顯示與隱藏
+        function toggleMarginOptions() {
+            var isChecked = document.getElementById('marginToggle').checked;
+            var marginOptions = document.getElementById('marginOptions');
+            if (isChecked) {
+                marginOptions.style.display = "flex";
+            } else {
+                marginOptions.style.display = "none";
+            }
+        }
+
         function calculate() {
-            // 1. 收集所有買進價格 (現在有 7 個)
             var prices = [];
             for (var i = 1; i <= 7; i++) {
                 var val = document.getElementById('buyPrice' + i).value;
@@ -284,14 +434,22 @@
             var sellInput = document.getElementById('sellPrice').value;
             var sellPrice = parseFloat(sellInput);
 
-            var feeRate = 0.001425; 
-            var taxRate = 0.003;
+            // 讀取進階設定
+            var discount = parseFloat(document.getElementById('discountSelect').value);
+            var isDayTrade = document.getElementById('dayTradeToggle').checked;
+            var isMargin = document.getElementById('marginToggle').checked;
+            var marginRatio = parseFloat(document.getElementById('marginRatio').value);
 
-            // 2. 計算買進總數據
+            // 設定費率
+            var baseFeeRate = 0.001425;
+            var feeRate = baseFeeRate * discount; 
+            var taxRate = isDayTrade ? 0.0015 : 0.003; // 當沖稅率減半
+
             var totalStockValue = 0; 
             var totalBuyFee = 0;     
             var totalShares = 0;     
 
+            // 若打折後手續費不足20元，通常券商有低收20元限制，但這裡為了簡化及方便客戶看大方向，我們維持小數點直接四捨五入的純算式。
             for (var i = 0; i < prices.length; i++) {
                 var p = prices[i];
                 var shareValue = p * 1000; 
@@ -305,22 +463,32 @@
             var totalBuyCost = totalStockValue + totalBuyFee; 
             var avgPrice = totalStockValue / totalShares; 
 
-            // 3. 計算損益平衡價
+            // 計算損益平衡價
             var breakEvenPrice = totalBuyCost / (totalShares * (1 - feeRate - taxRate));
 
-            // 4. 更新介面顯示
+            // 更新基本介面顯示
             document.getElementById('breakEven').innerText = breakEvenPrice.toFixed(2) + " 元";
             document.getElementById('buyFeeDisplay').innerText = totalBuyFee.toLocaleString();
             document.getElementById('avgPriceDisplay').innerText = avgPrice.toFixed(2);
             document.getElementById('totalCount').innerText = prices.length;
 
-            // 5. 處理賣出部分
+            // 處理融資自備款顯示
+            var marginResultBox = document.getElementById('marginResultBox');
+            if (isMargin) {
+                // 自備款 = (總股款 * (1 - 融資成數)) + 買進手續費
+                var downPayment = Math.round(totalStockValue * (1 - marginRatio)) + totalBuyFee;
+                document.getElementById('marginDownPayment').innerText = downPayment.toLocaleString() + " 元";
+                marginResultBox.style.display = "block";
+            } else {
+                marginResultBox.style.display = "none";
+            }
+
+            // 處理賣出部分
             var feeDivider = document.getElementById('feeDivider');
             var sellFeeBlock = document.getElementById('sellFeeBlock');
             var profitSection = document.getElementById('profitSection');
             
             if (!isNaN(sellPrice)) {
-                // 有輸入賣價
                 var sellTotalValue = sellPrice * totalShares; 
                 var sellFee = Math.round(sellTotalValue * feeRate);
                 var sellTax = Math.round(sellTotalValue * taxRate);
