@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
-    <title>股價計算機</title>
+    <title>永豐全方way - 股價精算</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="股價計算">
+    <meta name="apple-mobile-web-app-title" content="全方way精算">
     <meta name="theme-color" content="#f4f7f6">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
@@ -41,15 +41,61 @@
             text-align: center;
             margin-top: 20px; 
             margin-bottom: 40px; 
+            /* 浮水印定位用 */
+            position: relative;
+            overflow: hidden; 
+            z-index: 1;
         }
 
-        h1 {
-            color: #2c3e50;
-            font-size: 28px;
-            margin-bottom: 20px;
-            margin-top: 0;
+        /* --- 新增：團隊專屬極淡浮水印 --- */
+        .container::before {
+            content: "永豐全方way";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 60px;
+            color: rgba(0, 0, 0, 0.04); /* 透明度極低，不影響閱讀 */
+            font-weight: 900;
             white-space: nowrap;
+            pointer-events: none; /* 讓滑鼠點不到它 */
+            z-index: -1;
         }
+
+        /* --- 新增：頂部品牌標題區塊 --- */
+        .brand-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 25px;
+            gap: 15px; /* LOGO和文字的間距 */
+        }
+
+        .brand-logo {
+            height: 50px; /* LOGO高度，可隨時調整 */
+            width: auto;
+            border-radius: 8px;
+        }
+
+        .brand-text {
+            text-align: left;
+        }
+
+        .brand-text h1 {
+            color: #c0392b; /* 永豐紅 */
+            font-size: 30px;
+            margin: 0;
+            font-weight: 900;
+            letter-spacing: 1px;
+        }
+
+        .brand-text h2 {
+            color: #7f8c8d;
+            font-size: 15px;
+            margin: 2px 0 0 0;
+            font-weight: normal;
+        }
+        /* -------------------------------- */
 
         .input-group {
             margin-bottom: 15px;
@@ -65,7 +111,6 @@
             font-weight: bold;
         }
 
-        /* 輸入框樣式 */
         input.main-input {
             width: 100%;
             padding: 15px;
@@ -89,9 +134,8 @@
             box-shadow: 0 0 8px rgba(231, 76, 60, 0.3);
         }
 
-        /* 進階設定區塊 */
         .adv-panel {
-            background-color: #f8f9fa;
+            background-color: rgba(248, 249, 250, 0.85); /* 稍微透明，透出浮水印 */
             border: 1px solid #e9ecef;
             border-radius: 15px;
             padding: 15px;
@@ -127,7 +171,6 @@
             border-color: #3498db;
         }
 
-        /* iPhone 風格滑動開關 */
         .switch {
             position: relative;
             display: inline-block;
@@ -196,7 +239,6 @@
             transform: translateY(5px);
         }
 
-        /* 結果顯示區塊 */
         .result-box {
             margin-top: 25px;
             display: none;
@@ -210,7 +252,7 @@
         }
 
         .breakeven-box {
-            background-color: #ffeaa7; 
+            background-color: rgba(255, 234, 167, 0.9); 
             padding: 20px; 
             border-radius: 15px; 
             margin-bottom: 15px;
@@ -219,7 +261,7 @@
         }
 
         .margin-box {
-            background-color: #e3f2fd; 
+            background-color: rgba(227, 242, 253, 0.9); 
             padding: 15px; 
             border-radius: 15px; 
             margin-bottom: 15px;
@@ -259,7 +301,7 @@
         }
 
         .profit-box {
-            background-color: #dfe6e9;
+            background-color: rgba(223, 230, 233, 0.9);
             padding: 20px; 
             border-radius: 15px;
             margin-top: 20px;
@@ -270,7 +312,14 @@
 <body>
 
     <div class="container">
-        <h1>💰 股價手續費計算</h1>
+        
+        <div class="brand-header">
+            <img src="logo.png" alt="團隊LOGO" class="brand-logo" onerror="this.style.display='none'">
+            <div class="brand-text">
+                <h1>永豐全方way</h1>
+                <h2>股價與手續費精算系統</h2>
+            </div>
+        </div>
         
         <div class="input-group">
             <label>1. 買進均價 (元)</label>
@@ -378,7 +427,6 @@
     </div>
 
     <script>
-        // --- Enter 秒算功能 ---
         document.addEventListener('DOMContentLoaded', function() {
             var triggers = document.querySelectorAll('.calc-trigger');
             triggers.forEach(function(input) {
@@ -391,7 +439,6 @@
             });
         });
 
-        // 控制自訂折數輸入框
         function toggleCustomDiscount() {
             var val = document.getElementById('discountSelect').value;
             var customInput = document.getElementById('customDiscount');
@@ -403,7 +450,6 @@
             }
         }
 
-        // 控制融資選項展開
         function toggleMarginOptions() {
             var isChecked = document.getElementById('marginToggle').checked;
             var marginDetails = document.getElementById('marginDetails');
@@ -416,21 +462,17 @@
 
         function calculate() {
             var buyInput = document.getElementById('buyPrice').value;
-            if (buyInput === "") {
-                return; 
-            }
+            if (buyInput === "") return; 
 
             var buyPrice = parseFloat(buyInput);
             
             var sharesInput = document.getElementById('buyShares').value;
-            // 預設1張，防呆避免輸入0或負數
             var shares = sharesInput !== "" ? parseInt(sharesInput) : 1;
             if (shares <= 0) shares = 1; 
 
             var sellInput = document.getElementById('sellPrice').value;
             var sellPrice = parseFloat(sellInput);
 
-            // 讀取折數
             var discountVal = document.getElementById('discountSelect').value;
             var discount = 1;
             if (discountVal === 'custom') {
@@ -454,18 +496,15 @@
             var totalLoanAmount = 0; 
 
             if (isMargin) {
-                // 融資借款以千元為單位向下截斷
                 totalLoanAmount = Math.floor((totalStockValue * marginRatio) / 1000) * 1000;
             }
 
             var totalBuyCost = totalStockValue + totalBuyFee; 
-
             var breakEvenPrice = totalBuyCost / (totalShares * (1 - feeRate - taxRate));
 
             document.getElementById('breakEven').innerText = breakEvenPrice.toFixed(2) + " 元";
             document.getElementById('buyFeeDisplay').innerText = totalBuyFee.toLocaleString();
 
-            // 處理融資自備款
             var marginResultBox = document.getElementById('marginResultBox');
             if (isMargin) {
                 var downPayment = (totalStockValue - totalLoanAmount) + totalBuyFee;
@@ -475,7 +514,6 @@
                 marginResultBox.style.display = "none";
             }
 
-            // 處理賣出與淨利
             var feeDivider = document.getElementById('feeDivider');
             var sellFeeBlock = document.getElementById('sellFeeBlock');
             var profitSection = document.getElementById('profitSection');
@@ -486,7 +524,6 @@
                 var sellFee = Math.round(sellTotalValue * feeRate);
                 var sellTax = Math.round(sellTotalValue * taxRate);
                 
-                // 計算融資利息
                 var marginInterest = 0;
                 if (isMargin) {
                     var marginRate = parseFloat(document.getElementById('marginRate').value) / 100;
@@ -502,7 +539,6 @@
 
                 document.getElementById('sellFeeDisplay').innerText = sellCostOnly.toLocaleString();
                 
-                // 顯示利息小字
                 if (isMargin && marginInterest > 0) {
                     interestDisplay.innerText = "(含利息: " + marginInterest.toLocaleString() + ")";
                     interestDisplay.style.display = "block";
@@ -513,7 +549,6 @@
                 feeDivider.style.display = "block";
                 sellFeeBlock.style.display = "block";
 
-                // 計算總淨利
                 var sellNetIncome = sellTotalValue - sellCostOnly;
                 var netProfit = sellNetIncome - totalBuyCost;
 
