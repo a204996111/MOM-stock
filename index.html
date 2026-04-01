@@ -116,7 +116,7 @@
             box-shadow: 0 0 8px rgba(231, 76, 60, 0.3);
         }
 
-        /* --- 新增：進階設定區塊 (手續費、當沖、融資) --- */
+        /* 進階設定區塊 */
         .adv-panel {
             background-color: #f8f9fa;
             border: 1px solid #e9ecef;
@@ -140,8 +140,7 @@
             margin-bottom: 0;
         }
 
-        /* 下拉選單樣式 */
-        select.adv-select {
+        select.adv-select, input.adv-select {
             padding: 8px;
             font-size: 18px;
             border-radius: 8px;
@@ -149,6 +148,10 @@
             background-color: white;
             color: #2c3e50;
             outline: none;
+        }
+
+        input.adv-select:focus {
+            border-color: #3498db;
         }
 
         /* iPhone 風格滑動開關 */
@@ -187,7 +190,7 @@
         }
 
         input:checked + .slider {
-            background-color: #e74c3c; /* 喜氣紅開關 */
+            background-color: #e74c3c; 
         }
 
         input:checked + .slider:before {
@@ -199,7 +202,6 @@
             align-items: center;
             gap: 10px;
         }
-        /* ------------------------------------------- */
 
         button.calc-btn {
             background-color: #e74c3c;
@@ -250,7 +252,7 @@
             margin-bottom: 15px;
             color: #1565c0;
             font-size: 22px;
-            display: none; /* 預設隱藏，有開融資才顯示 */
+            display: none; 
         }
         
         .avg-price-row {
@@ -273,6 +275,7 @@
             flex: 1;
             font-size: 18px;
             color: #636e72;
+            position: relative;
         }
 
         .fee-number {
@@ -307,32 +310,36 @@
         
         <div class="input-group">
             <label>1. 買進價格 (元)</label>
-            <input type="number" id="buyPrice1" class="main-input" placeholder="主要價格" inputmode="decimal">
+            <input type="number" id="buyPrice1" class="main-input calc-trigger" placeholder="主要價格" inputmode="decimal">
         </div>
         
         <div class="secondary-group">
-            <input type="number" id="buyPrice2" class="sub-input" placeholder="價格1" inputmode="decimal">
-            <input type="number" id="buyPrice3" class="sub-input" placeholder="價格2" inputmode="decimal">
-            <input type="number" id="buyPrice4" class="sub-input" placeholder="價格3" inputmode="decimal">
-            <input type="number" id="buyPrice5" class="sub-input" placeholder="價格4" inputmode="decimal">
-            <input type="number" id="buyPrice6" class="sub-input" placeholder="價格5" inputmode="decimal">
-            <input type="number" id="buyPrice7" class="sub-input" placeholder="價格6" inputmode="decimal">
+            <input type="number" id="buyPrice2" class="sub-input calc-trigger" placeholder="價格1" inputmode="decimal">
+            <input type="number" id="buyPrice3" class="sub-input calc-trigger" placeholder="價格2" inputmode="decimal">
+            <input type="number" id="buyPrice4" class="sub-input calc-trigger" placeholder="價格3" inputmode="decimal">
+            <input type="number" id="buyPrice5" class="sub-input calc-trigger" placeholder="價格4" inputmode="decimal">
+            <input type="number" id="buyPrice6" class="sub-input calc-trigger" placeholder="價格5" inputmode="decimal">
+            <input type="number" id="buyPrice7" class="sub-input calc-trigger" placeholder="價格6" inputmode="decimal">
         </div>
 
         <div class="input-group">
             <label for="sellPrice">2. 預計賣出 (可不填)</label>
-            <input type="number" id="sellPrice" class="main-input" style="border-color: #bdc3c7;" placeholder="輸入賣價" inputmode="decimal">
+            <input type="number" id="sellPrice" class="main-input calc-trigger" style="border-color: #bdc3c7;" placeholder="輸入賣價" inputmode="decimal">
         </div>
 
         <div class="adv-panel">
-            <div class="adv-row">
+            <div class="adv-row" style="flex-wrap: wrap;">
                 <span>券商手續費</span>
-                <select id="discountSelect" class="adv-select">
-                    <option value="1">不打折</option>
-                    <option value="0.65" selected>永豐一般 (65折)</option>
-                    <option value="0.5">優惠 (5折)</option>
-                    <option value="0.28">專屬大戶 (28折)</option>
-                </select>
+                <div style="display:flex; gap:10px; align-items: center;">
+                    <select id="discountSelect" class="adv-select" onchange="toggleCustomDiscount()">
+                        <option value="1">不打折</option>
+                        <option value="0.65" selected>永豐一般 (65折)</option>
+                        <option value="0.5">優惠 (5折)</option>
+                        <option value="0.28">專屬大戶 (28折)</option>
+                        <option value="custom">自訂折數...</option>
+                    </select>
+                    <input type="number" id="customDiscount" class="adv-select calc-trigger" style="width: 80px; display: none;" placeholder="例:0.35" step="0.01" inputmode="decimal">
+                </div>
             </div>
 
             <div class="adv-row">
@@ -355,13 +362,22 @@
                 </div>
             </div>
 
-            <div class="adv-row" id="marginOptions" style="display: none; justify-content: flex-end;">
-                <span style="font-size: 16px; margin-right: 10px; color:#7f8c8d;">選擇成數:</span>
-                <select id="marginRatio" class="adv-select" style="font-size: 16px;">
-                    <option value="0.6">融資6成 (自備4成)</option>
-                    <option value="0.5">融資5成 (自備5成)</option>
-                    <option value="0.4">融資4成 (自備6成)</option>
-                </select>
+            <div id="marginDetails" style="display: none; background-color: #f1f3f5; padding: 12px; border-radius: 10px; margin-top: 10px; font-size: 16px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px; align-items: center;">
+                    <span style="color:#555; font-weight: bold;">融資成數:</span>
+                    <select id="marginRatio" class="adv-select" style="font-size: 15px; padding: 5px;">
+                        <option value="0.6">融資 6 成</option>
+                        <option value="0.5">融資 5 成</option>
+                    </select>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px; align-items: center;">
+                    <span style="color:#555; font-weight: bold;">融資利率 (%):</span>
+                    <input type="number" id="marginRate" class="adv-select calc-trigger" style="font-size: 15px; padding: 5px; width: 80px; text-align: center;" value="6.35" step="0.01" inputmode="decimal">
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color:#555; font-weight: bold;">持有天數 (天):</span>
+                    <input type="number" id="holdingDays" class="adv-select calc-trigger" style="font-size: 15px; padding: 5px; width: 80px; text-align: center;" placeholder="自填" inputmode="numeric">
+                </div>
             </div>
         </div>
 
@@ -395,6 +411,7 @@
                 <div class="fee-item" id="sellFeeBlock" style="display:none;">
                     賣出成本:<br>
                     <span id="sellFeeDisplay" class="fee-number">0</span>
+                    <div id="interestDisplay" style="font-size: 14px; color: #d63031; margin-top: 5px; display: none;">(含利息: 0)</div>
                 </div>
             </div>
 
@@ -407,14 +424,39 @@
     </div>
 
     <script>
-        // 控制融資成數選單的顯示與隱藏
+        // --- 新增：Enter 秒算功能 ---
+        document.addEventListener('DOMContentLoaded', function() {
+            var triggers = document.querySelectorAll('.calc-trigger');
+            triggers.forEach(function(input) {
+                input.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        input.blur(); // 收起手機小鍵盤
+                        calculate();
+                    }
+                });
+            });
+        });
+
+        // 控制自訂折數輸入框
+        function toggleCustomDiscount() {
+            var val = document.getElementById('discountSelect').value;
+            var customInput = document.getElementById('customDiscount');
+            if (val === 'custom') {
+                customInput.style.display = "block";
+                customInput.focus();
+            } else {
+                customInput.style.display = "none";
+            }
+        }
+
+        // 控制融資選項展開
         function toggleMarginOptions() {
             var isChecked = document.getElementById('marginToggle').checked;
-            var marginOptions = document.getElementById('marginOptions');
+            var marginDetails = document.getElementById('marginDetails');
             if (isChecked) {
-                marginOptions.style.display = "flex";
+                marginDetails.style.display = "block";
             } else {
-                marginOptions.style.display = "none";
+                marginDetails.style.display = "none";
             }
         }
 
@@ -434,22 +476,29 @@
             var sellInput = document.getElementById('sellPrice').value;
             var sellPrice = parseFloat(sellInput);
 
-            // 讀取進階設定
-            var discount = parseFloat(document.getElementById('discountSelect').value);
+            // 讀取折數
+            var discountVal = document.getElementById('discountSelect').value;
+            var discount = 1;
+            if (discountVal === 'custom') {
+                var customVal = document.getElementById('customDiscount').value;
+                discount = customVal !== "" ? parseFloat(customVal) : 1;
+            } else {
+                discount = parseFloat(discountVal);
+            }
+
             var isDayTrade = document.getElementById('dayTradeToggle').checked;
             var isMargin = document.getElementById('marginToggle').checked;
             var marginRatio = parseFloat(document.getElementById('marginRatio').value);
 
-            // 設定費率
             var baseFeeRate = 0.001425;
             var feeRate = baseFeeRate * discount; 
-            var taxRate = isDayTrade ? 0.0015 : 0.003; // 當沖稅率減半
+            var taxRate = isDayTrade ? 0.0015 : 0.003; 
 
             var totalStockValue = 0; 
             var totalBuyFee = 0;     
             var totalShares = 0;     
+            var totalLoanAmount = 0; // 總融資借款
 
-            // 若打折後手續費不足20元，通常券商有低收20元限制，但這裡為了簡化及方便客戶看大方向，我們維持小數點直接四捨五入的純算式。
             for (var i = 0; i < prices.length; i++) {
                 var p = prices[i];
                 var shareValue = p * 1000; 
@@ -458,45 +507,70 @@
                 totalStockValue += shareValue;
                 totalBuyFee += fee;
                 totalShares += 1000;
+
+                // 若有融資：單筆融資金額以千為單位 (無條件捨去畸零款)
+                if (isMargin) {
+                    var loan = Math.floor((shareValue * marginRatio) / 1000) * 1000;
+                    totalLoanAmount += loan;
+                }
             }
 
             var totalBuyCost = totalStockValue + totalBuyFee; 
             var avgPrice = totalStockValue / totalShares; 
 
-            // 計算損益平衡價
             var breakEvenPrice = totalBuyCost / (totalShares * (1 - feeRate - taxRate));
 
-            // 更新基本介面顯示
             document.getElementById('breakEven').innerText = breakEvenPrice.toFixed(2) + " 元";
             document.getElementById('buyFeeDisplay').innerText = totalBuyFee.toLocaleString();
             document.getElementById('avgPriceDisplay').innerText = avgPrice.toFixed(2);
             document.getElementById('totalCount').innerText = prices.length;
 
-            // 處理融資自備款顯示
+            // 處理融資自備款
             var marginResultBox = document.getElementById('marginResultBox');
             if (isMargin) {
-                // 自備款 = (總股款 * (1 - 融資成數)) + 買進手續費
-                var downPayment = Math.round(totalStockValue * (1 - marginRatio)) + totalBuyFee;
+                // 自備款 = (總股款 - 總融資借款) + 買進手續費
+                var downPayment = (totalStockValue - totalLoanAmount) + totalBuyFee;
                 document.getElementById('marginDownPayment').innerText = downPayment.toLocaleString() + " 元";
                 marginResultBox.style.display = "block";
             } else {
                 marginResultBox.style.display = "none";
             }
 
-            // 處理賣出部分
+            // 處理賣出與淨利
             var feeDivider = document.getElementById('feeDivider');
             var sellFeeBlock = document.getElementById('sellFeeBlock');
             var profitSection = document.getElementById('profitSection');
+            var interestDisplay = document.getElementById('interestDisplay');
             
             if (!isNaN(sellPrice)) {
                 var sellTotalValue = sellPrice * totalShares; 
                 var sellFee = Math.round(sellTotalValue * feeRate);
                 var sellTax = Math.round(sellTotalValue * taxRate);
                 
-                var sellCostOnly = sellFee + sellTax; 
+                // 計算融資利息
+                var marginInterest = 0;
+                if (isMargin) {
+                    var marginRate = parseFloat(document.getElementById('marginRate').value) / 100;
+                    var holdingDaysInput = document.getElementById('holdingDays').value;
+                    var holdingDays = holdingDaysInput !== "" ? parseInt(holdingDaysInput) : 0;
+                    
+                    if (holdingDays > 0) {
+                        marginInterest = Math.round(totalLoanAmount * marginRate * (holdingDays / 365));
+                    }
+                }
+
+                var sellCostOnly = sellFee + sellTax + marginInterest; 
 
                 document.getElementById('sellFeeDisplay').innerText = sellCostOnly.toLocaleString();
                 
+                // 顯示利息小字
+                if (isMargin && marginInterest > 0) {
+                    interestDisplay.innerText = "(含利息: " + marginInterest.toLocaleString() + ")";
+                    interestDisplay.style.display = "block";
+                } else {
+                    interestDisplay.style.display = "none";
+                }
+
                 feeDivider.style.display = "block";
                 sellFeeBlock.style.display = "block";
 
@@ -527,6 +601,7 @@
                 feeDivider.style.display = "none";
                 sellFeeBlock.style.display = "none";
                 profitSection.style.display = "none";
+                interestDisplay.style.display = "none";
             }
 
             document.getElementById('result').style.display = 'block';
