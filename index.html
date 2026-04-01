@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
-    <title>永豐全方way - 損益計算APP</title>
+    <title>永豐全方way - 證券損益計算</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
@@ -32,12 +32,12 @@
         }
 
         .container {
-            background-color: white; /* 備用背景色 */
-            /* --- 新增：滿版精品老花浮水印 --- */
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='150'%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' transform='rotate(-25, 100, 75)' fill='rgba(0,0,0,0.06)' font-size='20' font-weight='bold' font-family='sans-serif'%3E%E6%B0%B8%E8%B1%90%E5%85%A8%E6%96%B9way%3C/text%3E%3C/svg%3E");
+            background-color: white; 
+            /* --- 修改：滿版浮水印變黑一點 (rgba 0.06 -> 0.12) --- */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='150'%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' transform='rotate(-25, 100, 75)' fill='rgba(0,0,0,0.12)' font-size='20' font-weight='bold' font-family='sans-serif'%3E%E6%B0%B8%E8%B1%90%E5%85%A8%E6%96%B9way%3C/text%3E%3C/svg%3E");
             background-repeat: repeat;
             background-position: center;
-            /* --------------------------------- */
+            /* ------------------------------------------------- */
             padding: 25px;
             border-radius: 20px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
@@ -60,27 +60,27 @@
         }
 
         .brand-logo {
-            height: 55px; /* 稍微加大配合標題 */
+            height: 55px; 
             width: auto;
             border-radius: 8px;
         }
 
+        /* --- 修改：標題區塊改為置中對齊 --- */
         .brand-text {
-            text-align: left;
+            text-align: center; /* 改為置中 */
         }
 
-        /* --- 修改：標題改成全黑、特粗、變大 --- */
         .brand-text h1 {
             color: #111; /* 極致質感黑 */
-            font-size: 36px; /* 放大字體 */
+            font-size: 36px; 
             margin: 0;
-            font-weight: 900; /* 特粗體 */
+            font-weight: 900; 
             letter-spacing: 1px;
         }
 
-        /* --- 修改：副標題改名、加粗、稍微放大 --- */
+        /* --- 修改：副標題改名 --- */
         .brand-text h2 {
-            color: #555; /* 深灰色搭配黑色主標 */
+            color: #555; 
             font-size: 18px; 
             margin: 5px 0 0 0;
             font-weight: bold;
@@ -110,7 +110,7 @@
             text-align: center;
             outline: none;
             box-sizing: border-box;
-            background-color: rgba(255, 255, 255, 0.9); /* 微透讓浮水印隱約可見 */
+            background-color: rgba(255, 255, 255, 0.9); 
             -webkit-user-select: text;
             user-select: text;
         }
@@ -307,7 +307,7 @@
             <img src="logo.png" alt="團隊LOGO" class="brand-logo" onerror="this.style.display='none'">
             <div class="brand-text">
                 <h1>永豐全方way</h1>
-                <h2>損益計算APP</h2>
+                <h2>證券損益計算</h2>
             </div>
         </div>
         
@@ -417,18 +417,21 @@
     </div>
 
     <script>
+        // --- Enter 秒算功能 ---
         document.addEventListener('DOMContentLoaded', function() {
             var triggers = document.querySelectorAll('.calc-trigger');
             triggers.forEach(function(input) {
                 input.addEventListener('keypress', function(e) {
                     if (e.key === 'Enter') {
+                        // 稍微延遲一下計算，確保輸入框的值已經被完整讀取
+                        setTimeout(calculate, 50);
                         input.blur(); 
-                        calculate();
                     }
                 });
             });
         });
 
+        // 控制自訂折數輸入框
         function toggleCustomDiscount() {
             var val = document.getElementById('discountSelect').value;
             var customInput = document.getElementById('customDiscount');
@@ -440,6 +443,7 @@
             }
         }
 
+        // 控制融資選項展開
         function toggleMarginOptions() {
             var isChecked = document.getElementById('marginToggle').checked;
             var marginDetails = document.getElementById('marginDetails');
@@ -458,19 +462,24 @@
             
             var sharesInput = document.getElementById('buyShares').value;
             var shares = sharesInput !== "" ? parseInt(sharesInput) : 1;
-            if (shares <= 0) shares = 1; 
+            // 防呆：張數至少為 1
+            if (isNaN(shares) || shares <= 0) shares = 1; 
 
             var sellInput = document.getElementById('sellPrice').value;
             var sellPrice = parseFloat(sellInput);
 
+            // --- 修正：修正自訂折數無法計算的 Bug ---
             var discountVal = document.getElementById('discountSelect').value;
             var discount = 1;
             if (discountVal === 'custom') {
-                var customVal = document.getElementById('customDiscount');
-                discount = customVal !== "" ? parseFloat(customVal) : 1;
+                // 如果是自訂，去讀取自訂輸入框的數字
+                var customVal = document.getElementById('customDiscount').value;
+                discount = (customVal !== "" && !isNaN(parseFloat(customVal))) ? parseFloat(customVal) : 1;
             } else {
+                // 如果不是自訂，直接取選單的值
                 discount = parseFloat(discountVal);
             }
+            // ----------------------------------------
 
             var isDayTrade = document.getElementById('dayTradeToggle').checked;
             var isMargin = document.getElementById('marginToggle').checked;
@@ -516,7 +525,8 @@
                 
                 var marginInterest = 0;
                 if (isMargin) {
-                    var marginRate = parseFloat(document.getElementById('marginRate').value) / 100;
+                    var marginRateInput = document.getElementById('marginRate').value;
+                    var marginRate = (marginRateInput !== "" ? parseFloat(marginRateInput) : 6.35) / 100;
                     var holdingDaysInput = document.getElementById('holdingDays').value;
                     var holdingDays = holdingDaysInput !== "" ? parseInt(holdingDaysInput) : 0;
                     
