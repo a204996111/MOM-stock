@@ -80,33 +80,6 @@
             user-select: text;
         }
 
-        .secondary-group {
-            display: grid;
-            grid-template-columns: 1fr 1fr; 
-            gap: 10px;
-            margin-bottom: 25px;
-            padding: 0 5px;
-        }
-
-        input.sub-input {
-            width: 100%;
-            padding: 10px;
-            font-size: 22px; 
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            text-align: center;
-            outline: none;
-            box-sizing: border-box;
-            background-color: #fafafa;
-            -webkit-user-select: text;
-            user-select: text;
-        }
-
-        input.sub-input:focus, input.main-input:focus {
-            border-color: #3498db;
-            background-color: #fff;
-        }
-
         #sellPrice {
             background-color: #fdfefe;
             border-color: #bdc3c7;
@@ -254,15 +227,6 @@
             font-size: 22px;
             display: none; 
         }
-        
-        .avg-price-row {
-            font-size: 20px;
-            color: #2c3e50;
-            background-color: #f0f3f5;
-            padding: 10px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-        }
 
         .fee-row {
             display: flex;
@@ -309,21 +273,17 @@
         <h1>💰 股價手續費計算</h1>
         
         <div class="input-group">
-            <label>1. 買進價格 (元)</label>
-            <input type="number" id="buyPrice1" class="main-input calc-trigger" placeholder="主要價格" inputmode="decimal">
+            <label>1. 買進均價 (元)</label>
+            <input type="number" id="buyPrice" class="main-input calc-trigger" placeholder="輸入買進均價" inputmode="decimal">
         </div>
         
-        <div class="secondary-group">
-            <input type="number" id="buyPrice2" class="sub-input calc-trigger" placeholder="價格1" inputmode="decimal">
-            <input type="number" id="buyPrice3" class="sub-input calc-trigger" placeholder="價格2" inputmode="decimal">
-            <input type="number" id="buyPrice4" class="sub-input calc-trigger" placeholder="價格3" inputmode="decimal">
-            <input type="number" id="buyPrice5" class="sub-input calc-trigger" placeholder="價格4" inputmode="decimal">
-            <input type="number" id="buyPrice6" class="sub-input calc-trigger" placeholder="價格5" inputmode="decimal">
-            <input type="number" id="buyPrice7" class="sub-input calc-trigger" placeholder="價格6" inputmode="decimal">
+        <div class="input-group">
+            <label>2. 買進張數 (張)</label>
+            <input type="number" id="buyShares" class="main-input calc-trigger" value="1" inputmode="numeric">
         </div>
 
         <div class="input-group">
-            <label for="sellPrice">2. 預計賣出 (可不填)</label>
+            <label for="sellPrice">3. 預計賣出 (可不填)</label>
             <input type="number" id="sellPrice" class="main-input calc-trigger" style="border-color: #bdc3c7;" placeholder="輸入賣價" inputmode="decimal">
         </div>
 
@@ -394,11 +354,6 @@
                 <span id="marginDownPayment" class="highlight" style="color: #1976d2;">0</span>
             </div>
 
-            <div class="avg-price-row">
-                平均股價: <b id="avgPriceDisplay">0</b> 元 
-                <span style="font-size: 16px; color:#7f8c8d;">(共 <span id="totalCount">0</span> 張)</span>
-            </div>
-
             <div class="fee-row">
                 <div class="fee-item">
                     買進成本:<br>
@@ -460,17 +415,17 @@
         }
 
         function calculate() {
-            var prices = [];
-            for (var i = 1; i <= 7; i++) {
-                var val = document.getElementById('buyPrice' + i).value;
-                if (val !== "") {
-                    prices.push(parseFloat(val));
-                }
-            }
-
-            if (prices.length === 0) {
+            var buyInput = document.getElementById('buyPrice').value;
+            if (buyInput === "") {
                 return; 
             }
+
+            var buyPrice = parseFloat(buyInput);
+            
+            var sharesInput = document.getElementById('buyShares').value;
+            // 預設1張，防呆避免輸入0或負數
+            var shares = sharesInput !== "" ? parseInt(sharesInput) : 1;
+            if (shares <= 0) shares = 1; 
 
             var sellInput = document.getElementById('sellPrice').value;
             var sellPrice = parseFloat(sellInput);
@@ -493,35 +448,22 @@
             var feeRate = baseFeeRate * discount; 
             var taxRate = isDayTrade ? 0.0015 : 0.003; 
 
-            var totalStockValue = 0; 
-            var totalBuyFee = 0;     
-            var totalShares = 0;     
+            var totalShares = shares * 1000;     
+            var totalStockValue = buyPrice * totalShares; 
+            var totalBuyFee = Math.round(totalStockValue * feeRate);     
             var totalLoanAmount = 0; 
 
-            for (var i = 0; i < prices.length; i++) {
-                var p = prices[i];
-                var shareValue = p * 1000; 
-                var fee = Math.round(shareValue * feeRate);
-                
-                totalStockValue += shareValue;
-                totalBuyFee += fee;
-                totalShares += 1000;
-
-                if (isMargin) {
-                    var loan = Math.floor((shareValue * marginRatio) / 1000) * 1000;
-                    totalLoanAmount += loan;
-                }
+            if (isMargin) {
+                // 融資借款以千元為單位向下截斷
+                totalLoanAmount = Math.floor((totalStockValue * marginRatio) / 1000) * 1000;
             }
 
             var totalBuyCost = totalStockValue + totalBuyFee; 
-            var avgPrice = totalStockValue / totalShares; 
 
             var breakEvenPrice = totalBuyCost / (totalShares * (1 - feeRate - taxRate));
 
             document.getElementById('breakEven').innerText = breakEvenPrice.toFixed(2) + " 元";
             document.getElementById('buyFeeDisplay').innerText = totalBuyFee.toLocaleString();
-            document.getElementById('avgPriceDisplay').innerText = avgPrice.toFixed(2);
-            document.getElementById('totalCount').innerText = prices.length;
 
             // 處理融資自備款
             var marginResultBox = document.getElementById('marginResultBox');
