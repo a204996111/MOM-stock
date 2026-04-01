@@ -33,11 +33,9 @@
 
         .container {
             background-color: white; 
-            /* --- 修改：滿版浮水印變黑一點 (rgba 0.06 -> 0.12) --- */
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='150'%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' transform='rotate(-25, 100, 75)' fill='rgba(0,0,0,0.12)' font-size='20' font-weight='bold' font-family='sans-serif'%3E%E6%B0%B8%E8%B1%90%E5%85%A8%E6%96%B9way%3C/text%3E%3C/svg%3E");
             background-repeat: repeat;
             background-position: center;
-            /* ------------------------------------------------- */
             padding: 25px;
             border-radius: 20px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
@@ -65,20 +63,18 @@
             border-radius: 8px;
         }
 
-        /* --- 修改：標題區塊改為置中對齊 --- */
         .brand-text {
-            text-align: center; /* 改為置中 */
+            text-align: center; 
         }
 
         .brand-text h1 {
-            color: #111; /* 極致質感黑 */
+            color: #111; 
             font-size: 36px; 
             margin: 0;
             font-weight: 900; 
             letter-spacing: 1px;
         }
 
-        /* --- 修改：副標題改名 --- */
         .brand-text h2 {
             color: #555; 
             font-size: 18px; 
@@ -336,8 +332,12 @@
                         <option value="0.28">28折</option>
                         <option value="custom">自訂折數</option>
                     </select>
-                    <input type="number" id="customDiscount" class="adv-select calc-trigger" style="width: 80px; display: none;" placeholder="例:0.35" step="0.01" inputmode="decimal">
-                </div>
+                    
+                    <div id="customDiscountWrapper" style="display: none; align-items: center; gap: 5px;">
+                        <input type="number" id="customDiscount" class="adv-select calc-trigger" style="width: 70px; text-align: center;" placeholder="例:28" step="1" inputmode="numeric">
+                        <span style="font-size: 18px; color: #222; font-weight: bold;">折</span>
+                    </div>
+                    </div>
             </div>
 
             <div class="adv-row">
@@ -417,13 +417,11 @@
     </div>
 
     <script>
-        // --- Enter 秒算功能 ---
         document.addEventListener('DOMContentLoaded', function() {
             var triggers = document.querySelectorAll('.calc-trigger');
             triggers.forEach(function(input) {
                 input.addEventListener('keypress', function(e) {
                     if (e.key === 'Enter') {
-                        // 稍微延遲一下計算，確保輸入框的值已經被完整讀取
                         setTimeout(calculate, 50);
                         input.blur(); 
                     }
@@ -431,19 +429,19 @@
             });
         });
 
-        // 控制自訂折數輸入框
+        // --- 修改：切換自訂折數時，顯示 Wrapper (包含輸入框和「折」字) ---
         function toggleCustomDiscount() {
             var val = document.getElementById('discountSelect').value;
+            var customWrapper = document.getElementById('customDiscountWrapper');
             var customInput = document.getElementById('customDiscount');
             if (val === 'custom') {
-                customInput.style.display = "block";
+                customWrapper.style.display = "flex";
                 customInput.focus();
             } else {
-                customInput.style.display = "none";
+                customWrapper.style.display = "none";
             }
         }
 
-        // 控制融資選項展開
         function toggleMarginOptions() {
             var isChecked = document.getElementById('marginToggle').checked;
             var marginDetails = document.getElementById('marginDetails');
@@ -462,24 +460,20 @@
             
             var sharesInput = document.getElementById('buyShares').value;
             var shares = sharesInput !== "" ? parseInt(sharesInput) : 1;
-            // 防呆：張數至少為 1
             if (isNaN(shares) || shares <= 0) shares = 1; 
 
             var sellInput = document.getElementById('sellPrice').value;
             var sellPrice = parseFloat(sellInput);
 
-            // --- 修正：修正自訂折數無法計算的 Bug ---
             var discountVal = document.getElementById('discountSelect').value;
             var discount = 1;
             if (discountVal === 'custom') {
-                // 如果是自訂，去讀取自訂輸入框的數字
                 var customVal = document.getElementById('customDiscount').value;
-                discount = (customVal !== "" && !isNaN(parseFloat(customVal))) ? parseFloat(customVal) : 1;
+                // --- 修改：把輸入的數字 (如 28) 自動除以 100 變成 0.28 ---
+                discount = (customVal !== "" && !isNaN(parseFloat(customVal))) ? (parseFloat(customVal) / 100) : 1;
             } else {
-                // 如果不是自訂，直接取選單的值
                 discount = parseFloat(discountVal);
             }
-            // ----------------------------------------
 
             var isDayTrade = document.getElementById('dayTradeToggle').checked;
             var isMargin = document.getElementById('marginToggle').checked;
