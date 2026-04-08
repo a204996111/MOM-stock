@@ -12,8 +12,10 @@
     <meta name="theme-color" content="#f4f7f6">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
-    <link rel="apple-touch-icon" href="logo.png">
-    <link rel="icon" type="image/jpeg" href="logo.png"> <style>
+    <link rel="apple-touch-icon" href="logo.jpg">
+    <link rel="icon" type="image/jpeg" href="logo.jpg">
+
+    <style>
         /* 基礎樣式設定 */
         body {
             font-family: "Microsoft JhengHei", "Heiti TC", sans-serif;
@@ -46,16 +48,14 @@
             z-index: 1;
         }
 
-        /* 團隊品牌標題區塊 */
         .brand-header {
             display: flex;
-            align-items: center; /* 垂直置中對齊 */
+            align-items: center; 
             justify-content: center;
             margin-bottom: 30px;
             gap: 15px; 
         }
 
-        /* --- 修改這裡：LOGO 大幅增加大小 (55px -> 85px) --- */
         .brand-logo {
             height: 85px; 
             width: auto;
@@ -154,6 +154,13 @@
 
         input.adv-select:focus {
             border-color: #3498db;
+        }
+
+        /* 當輸入框被 disabled 時的樣式 */
+        input.adv-select:disabled {
+            background-color: #e9ecef;
+            color: #6c757d;
+            border-color: #ced4da;
         }
 
         .switch {
@@ -299,7 +306,7 @@
     <div class="container">
         
         <div class="brand-header">
-            <img src="logo.png" alt="團隊LOGO" class="brand-logo" onerror="this.style.display='none'">
+            <img src="logo.jpg" alt="團隊LOGO" class="brand-logo" onerror="this.style.display='none'">
             <div class="brand-text">
                 <h1>永豐全方way</h1>
                 <h2>證券損益計算</h2>
@@ -343,7 +350,7 @@
                 <span>現股當沖 (稅減半)</span>
                 <div class="toggle-group">
                     <label class="switch">
-                        <input type="checkbox" id="dayTradeToggle">
+                        <input type="checkbox" id="dayTradeToggle" onchange="handleDayTradeLogic()">
                         <span class="slider"></span>
                     </label>
                 </div>
@@ -438,7 +445,27 @@
             } else {
                 customWrapper.style.display = "none";
             }
+            calculate();
         }
+
+        // --- 新增：當沖與融資天數的連動防呆邏輯 ---
+        function handleDayTradeLogic() {
+            var isDayTrade = document.getElementById('dayTradeToggle').checked;
+            var holdingDaysInput = document.getElementById('holdingDays');
+
+            if (isDayTrade) {
+                // 如果開啟當沖，天數清空、禁用輸入、改變提示字
+                holdingDaysInput.value = "";
+                holdingDaysInput.placeholder = "當沖免息";
+                holdingDaysInput.disabled = true;
+            } else {
+                // 如果關閉當沖，恢復正常
+                holdingDaysInput.disabled = false;
+                holdingDaysInput.placeholder = "自填";
+            }
+            calculate(); // 狀態改變後自動重算
+        }
+        // ----------------------------------------
 
         function toggleMarginOptions() {
             var isChecked = document.getElementById('marginToggle').checked;
@@ -448,6 +475,7 @@
             } else {
                 marginDetails.style.display = "none";
             }
+            calculate();
         }
 
         function calculate() {
@@ -515,7 +543,9 @@
                 var sellTax = Math.round(sellTotalValue * taxRate);
                 
                 var marginInterest = 0;
-                if (isMargin) {
+                
+                // --- 修改：當沖狀態下，就算開了融資，利息也強制為 0 ---
+                if (isMargin && !isDayTrade) {
                     var marginRateInput = document.getElementById('marginRate').value;
                     var marginRate = (marginRateInput !== "" ? parseFloat(marginRateInput) : 6.35) / 100;
                     var holdingDaysInput = document.getElementById('holdingDays').value;
